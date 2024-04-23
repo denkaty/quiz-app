@@ -23,15 +23,19 @@ fetch(
   .then((loadedQuestions) => {
     questions = loadedQuestions.results.map((loadedQuestion) => {
       const formattedQuestion = {
-        question: loadedQuestion.question,
+        question: decodeHtml(loadedQuestion.question),
       };
+      console.log(formattedQuestion);
 
-      const answerChoices = [...loadedQuestion.incorrect_answers];
+      const answerChoices = loadedQuestion.incorrect_answers.map((choice) =>
+        decodeHtml(choice)
+      );
+
       formattedQuestion.answer = Math.floor(Math.random() * 4) + 1;
       answerChoices.splice(
         formattedQuestion.answer - 1,
         0,
-        loadedQuestion.correct_answer
+        decodeHtml(loadedQuestion.correct_answer)
       );
 
       answerChoices.forEach((choice, index) => {
@@ -78,7 +82,7 @@ getNewQuestion = () => {
 
   choices.forEach((choice) => {
     const number = choice.dataset["number"];
-    choice.innerText = currentQuestion["choice" + number];
+    choice.textContent = currentQuestion["choice" + number];
   });
 
   availableQuesions.splice(questionIndex, 1);
@@ -112,3 +116,9 @@ incrementScore = (num) => {
   score += num;
   scoreText.innerText = score;
 };
+
+function decodeHtml(html) {
+  var txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+}

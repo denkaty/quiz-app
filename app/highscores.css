@@ -12,3 +12,51 @@
 .high-score:hover {
   transform: scale(1.025);
 }
+
+table {
+  width: 50%;
+  border-collapse: collapse;
+  margin: 20px auto;
+}
+
+thead th {
+  background-color: #56a5eb;
+  font-size: 2rem;
+}
+
+th,
+td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  font-size: 1.5rem;
+  color: white;
+}
+
+#highScores h1 {
+  color: white;
+}
+
+.container::before {
+  content: "";
+  background-image: url("https://t4.ftcdn.net/jpg/02/24/03/21/360_F_224032170_7PfrDJYWjCw4Rs1WFvhPkiSPuD02sw1q.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  filter: blur(5px);
+}
+
+#highScores {
+  border: 2px solid #f1f1f1;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+  width: 80%;
+  border-radius: 1rem;
+}

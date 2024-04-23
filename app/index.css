@@ -1,0 +1,23 @@
+.container::before {
+  content: "";
+  background-image: url("https://as2.ftcdn.net/v2/jpg/03/45/88/07/1000_F_345880772_zIT2mkdCzTthplO7xqaGGrMspN0jw0ll.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  filter: blur(5px);
+}
+
+#home {
+  border: 2px solid #f1f1f1;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+  width: 65%;
+  border-radius: 1rem;
+}

@@ -1,8 +1,19 @@
-const highScoresList = document.getElementById("highScoresList");
 const highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+const highScoresTableBody = document.getElementById("highScoresTableBody");
 
-highScoresList.innerHTML = highScores
+highScores
   .map((score) => {
-    return `<li class="high-score">${score.name}-${score.score}</li>`;
+    const row = document.createElement("tr");
+
+    const usernameCell = document.createElement("th");
+    usernameCell.textContent = score.name;
+
+    const scoreCell = document.createElement("td");
+    scoreCell.textContent = score.score;
+
+    row.appendChild(usernameCell);
+    row.appendChild(scoreCell);
+
+    highScoresTableBody.appendChild(row);
   })
   .join("");
