@@ -1,124 +1,133 @@
-const question = document.getElementById("question");
-const choices = Array.from(document.getElementsByClassName("choice-text"));
-const progressText = document.getElementById("progressText");
-const scoreText = document.getElementById("score");
-const progressBarFull = document.getElementById("progressBarFull");
-const loader = document.getElementById("loader");
-const game = document.getElementById("game");
+const CORRECT_BONUS = 10;
+const MAX_QUESTIONS = 10;
+const CATEGORY_ID = 18;
+const DIFFICULTY = "easy";
+const ANSWERS_TYPE = "multiple";
+
+const questionElement = document.getElementById("question");
+const choiceElements = Array.from(
+  document.getElementsByClassName("choice-text")
+);
+const progressTextElement = document.getElementById("progressText");
+const scoreTextElement = document.getElementById("score");
+const progressBarFullElement = document.getElementById("progressBarFull");
+const loaderElement = document.getElementById("loader");
+const gameElement = document.getElementById("game");
 
 let currentQuestion = {};
 let acceptingAnswers = false;
 let score = 0;
 let questionCounter = 0;
-let availableQuesions = [];
+let availableQuestions = [];
 
-let questions = [];
+function decodeHtml(html) {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+}
 
-fetch(
-  "https://opentdb.com/api.php?amount=10&category=18&difficulty=easy&type=multiple"
-)
-  .then((res) => {
-    return res.json();
-  })
-  .then((loadedQuestions) => {
-    questions = loadedQuestions.results.map((loadedQuestion) => {
-      const formattedQuestion = {
-        question: decodeHtml(loadedQuestion.question),
-      };
-      console.log(formattedQuestion);
+async function fetchQuestions() {
+  try {
+    const response = await fetch(
+      `https://opentdb.com/api.php?amount=${MAX_QUESTIONS}&category=${CATEGORY_ID}&difficulty=${DIFFICULTY}&type=${ANSWERS_TYPE}`
+    );
+    const data = await response.json();
+    return data.results;
+  } catch (error) {
+    console.error("Error fetching questions:", error);
+    throw error;
+  }
+}
 
-      const answerChoices = loadedQuestion.incorrect_answers.map((choice) =>
-        decodeHtml(choice)
-      );
-
-      formattedQuestion.answer = Math.floor(Math.random() * 4) + 1;
-      answerChoices.splice(
-        formattedQuestion.answer - 1,
-        0,
-        decodeHtml(loadedQuestion.correct_answer)
-      );
-
-      answerChoices.forEach((choice, index) => {
-        formattedQuestion["choice" + (index + 1)] = choice;
-      });
-
-      return formattedQuestion;
-    });
-
-    startGame();
-  })
-  .catch((err) => {
-    console.error(err);
-  });
-
-//CONSTANTS
-const CORRECT_BONUS = 10;
-const MAX_QUESTIONS = 10;
-
-startGame = () => {
+async function initializeGame() {
   questionCounter = 0;
   score = 0;
-  availableQuesions = [...questions];
-  getNewQuestion();
-  game.classList.remove("hidden");
-  loader.classList.add("hidden");
-};
+  loaderElement.classList.remove("hidden");
+  gameElement.classList.add("hidden");
+  try {
+    const loadedQuestions = await fetchQuestions();
+    availableQuestions = loadedQuestions.map((question) =>
+      formatQuestion(question)
+    );
+    startGame();
+  } catch (error) {
+    console.error("Failed to initialize game:", error);
+  } finally {
+    loaderElement.classList.add("hidden");
+    gameElement.classList.remove("hidden");
+  }
+}
 
-getNewQuestion = () => {
-  if (availableQuesions.length === 0 || questionCounter >= MAX_QUESTIONS) {
+function startGame() {
+  questionCounter = 0;
+  score = 0;
+  availableQuestions = [...availableQuestions];
+  getNextQuestion();
+}
+
+function getNextQuestion() {
+  if (availableQuestions.length === 0 || questionCounter >= MAX_QUESTIONS) {
     localStorage.setItem("mostRecentScore", score);
     return window.location.assign("end.html");
   }
-
   questionCounter++;
-
-  progressText.innerText = `Question ${questionCounter}/${MAX_QUESTIONS}`;
-
-  progressBarFull.style.width = `${(questionCounter / MAX_QUESTIONS) * 100}%`;
-
-  const questionIndex = Math.floor(Math.random() * availableQuesions.length);
-  currentQuestion = availableQuesions[questionIndex];
-  question.innerText = currentQuestion.question;
-
-  choices.forEach((choice) => {
-    const number = choice.dataset["number"];
-    choice.textContent = currentQuestion["choice" + number];
+  progressTextElement.innerText = `Question ${questionCounter}/${MAX_QUESTIONS}`;
+  progressBarFullElement.style.width = `${
+    (questionCounter / MAX_QUESTIONS) * 100
+  }%`;
+  const questionIndex = Math.floor(Math.random() * availableQuestions.length);
+  currentQuestion = availableQuestions[questionIndex];
+  questionElement.innerText = currentQuestion.question;
+  choiceElements.forEach((choice, index) => {
+    const choiceNumber = index + 1;
+    choice.textContent = currentQuestion["choice" + choiceNumber];
+    choice.dataset.number = choiceNumber;
   });
-
-  availableQuesions.splice(questionIndex, 1);
+  availableQuestions.splice(questionIndex, 1);
   acceptingAnswers = true;
-};
+}
 
-choices.forEach((choice) => {
-  choice.addEventListener("click", (e) => {
+choiceElements.forEach((choice) => {
+  choice.addEventListener("click", (event) => {
     if (!acceptingAnswers) return;
-
     acceptingAnswers = false;
-    const selectedChoice = e.target;
-    const selectedAnswer = selectedChoice.dataset["number"];
-
+    const selectedChoice = event.target;
+    const selectedAnswer = selectedChoice.dataset.number;
     const classToApply =
       selectedAnswer == currentQuestion.answer ? "correct" : "incorrect";
-
     if (classToApply === "correct") {
       incrementScore(CORRECT_BONUS);
     }
     selectedChoice.parentElement.classList.add(classToApply);
-
     setTimeout(() => {
       selectedChoice.parentElement.classList.remove(classToApply);
-      getNewQuestion();
+      getNextQuestion();
     }, 1000);
   });
 });
 
-incrementScore = (num) => {
-  score += num;
-  scoreText.innerText = score;
-};
-
-function decodeHtml(html) {
-  var txt = document.createElement("textarea");
-  txt.innerHTML = html;
-  return txt.value;
+function incrementScore(points) {
+  score += points;
+  scoreTextElement.innerText = score;
 }
+
+function formatQuestion(questionData) {
+  const formattedQuestion = {
+    question: decodeHtml(questionData.question),
+    answer: Math.floor(Math.random() * 4) + 1,
+  };
+  const answerChoices = questionData.incorrect_answers.map((choice) =>
+    decodeHtml(choice)
+  );
+  answerChoices.splice(
+    formattedQuestion.answer - 1,
+    0,
+    decodeHtml(questionData.correct_answer)
+  );
+  answerChoices.forEach((choice, index) => {
+    formattedQuestion["choice" + (index + 1)] = choice;
+  });
+  return formattedQuestion;
+}
+
+initializeGame();

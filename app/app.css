@@ -40,8 +40,6 @@ h3 {
   font-weight: 500;
 }
 
-/* UTILITIES */
-
 .container {
   width: 100vw;
   height: 100vh;
@@ -79,7 +77,6 @@ h3 {
   display: none;
 }
 
-/* BUTTONS */
 .btn {
   font-size: 1.8rem;
   padding: 1rem 0;
@@ -141,8 +138,6 @@ h3 {
   font-weight: 500;
 }
 
-/* UTILITIES */
-
 .container {
   width: 100vw;
   height: 100vh;
@@ -180,7 +175,6 @@ h3 {
   display: none;
 }
 
-/* BUTTONS */
 .btn {
   font-size: 1.8rem;
   padding: 1rem 0;
