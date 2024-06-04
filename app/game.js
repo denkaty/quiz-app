@@ -20,24 +20,26 @@ let score = 0;
 let questionCounter = 0;
 let availableQuestions = [];
 
-function decodeHtml(html) {
-  const txt = document.createElement("textarea");
-  txt.innerHTML = html;
-  return txt.value;
-}
+choiceElements.forEach((choice) => {
+  choice.addEventListener("click", (event) => {
+    if (!acceptingAnswers) return;
+    acceptingAnswers = false;
+    const selectedChoice = event.target;
+    const selectedAnswer = selectedChoice.dataset.number;
+    const classToApply =
+      selectedAnswer == currentQuestion.answer ? "correct" : "incorrect";
+    if (classToApply === "correct") {
+      incrementScore(CORRECT_BONUS);
+    }
+    selectedChoice.parentElement.classList.add(classToApply);
+    setTimeout(() => {
+      selectedChoice.parentElement.classList.remove(classToApply);
+      getNextQuestion();
+    }, 1000);
+  });
+});
 
-async function fetchQuestions() {
-  try {
-    const response = await fetch(
-      `https://opentdb.com/api.php?amount=${MAX_QUESTIONS}&category=${CATEGORY_ID}&difficulty=${DIFFICULTY}&type=${ANSWERS_TYPE}`
-    );
-    const data = await response.json();
-    return data.results;
-  } catch (error) {
-    console.error("Error fetching questions:", error);
-    throw error;
-  }
-}
+initializeGame();
 
 async function initializeGame() {
   questionCounter = 0;
@@ -56,6 +58,44 @@ async function initializeGame() {
     loaderElement.classList.add("hidden");
     gameElement.classList.remove("hidden");
   }
+}
+
+async function fetchQuestions() {
+  try {
+    const response = await fetch(
+      `https://opentdb.com/api.php?amount=${MAX_QUESTIONS}&category=${CATEGORY_ID}&difficulty=${DIFFICULTY}&type=${ANSWERS_TYPE}`
+    );
+    const data = await response.json();
+    return data.results;
+  } catch (error) {
+    console.error("Error fetching questions:", error);
+    throw error;
+  }
+}
+
+function formatQuestion(questionData) {
+  const formattedQuestion = {
+    question: decodeHtml(questionData.question),
+    answer: Math.floor(Math.random() * 4) + 1,
+  };
+  const answerChoices = questionData.incorrect_answers.map((choice) =>
+    decodeHtml(choice)
+  );
+  answerChoices.splice(
+    formattedQuestion.answer - 1,
+    0,
+    decodeHtml(questionData.correct_answer)
+  );
+  answerChoices.forEach((choice, index) => {
+    formattedQuestion["choice" + (index + 1)] = choice;
+  });
+  return formattedQuestion;
+}
+
+function decodeHtml(html) {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
 }
 
 function startGame() {
@@ -87,47 +127,10 @@ function getNextQuestion() {
   acceptingAnswers = true;
 }
 
-choiceElements.forEach((choice) => {
-  choice.addEventListener("click", (event) => {
-    if (!acceptingAnswers) return;
-    acceptingAnswers = false;
-    const selectedChoice = event.target;
-    const selectedAnswer = selectedChoice.dataset.number;
-    const classToApply =
-      selectedAnswer == currentQuestion.answer ? "correct" : "incorrect";
-    if (classToApply === "correct") {
-      incrementScore(CORRECT_BONUS);
-    }
-    selectedChoice.parentElement.classList.add(classToApply);
-    setTimeout(() => {
-      selectedChoice.parentElement.classList.remove(classToApply);
-      getNextQuestion();
-    }, 1000);
-  });
-});
-
 function incrementScore(points) {
   score += points;
   scoreTextElement.innerText = score;
 }
 
-function formatQuestion(questionData) {
-  const formattedQuestion = {
-    question: decodeHtml(questionData.question),
-    answer: Math.floor(Math.random() * 4) + 1,
-  };
-  const answerChoices = questionData.incorrect_answers.map((choice) =>
-    decodeHtml(choice)
-  );
-  answerChoices.splice(
-    formattedQuestion.answer - 1,
-    0,
-    decodeHtml(questionData.correct_answer)
-  );
-  answerChoices.forEach((choice, index) => {
-    formattedQuestion["choice" + (index + 1)] = choice;
-  });
-  return formattedQuestion;
-}
 
-initializeGame();
+
